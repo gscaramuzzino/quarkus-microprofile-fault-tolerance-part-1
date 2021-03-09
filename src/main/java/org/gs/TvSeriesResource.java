@@ -1,5 +1,7 @@
 package org.gs;
 
+import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
+import org.eclipse.microprofile.faulttolerance.Fallback;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.gs.model.Episode;
 import org.gs.model.TvSeries;
@@ -26,9 +28,30 @@ public class TvSeriesResource {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response get(@QueryParam("title") String title) {
-    TvSeries tvSeries = proxy.get(title);
-    List<Episode> episodes = episodeProxy.get(tvSeries.getId());
+    TvSeries tvSeries = getTvSeries(title);
+    List<Episode> episodes = getEpisodes(tvSeries.getId());
     tvSeriesList.add(tvSeries);
     return Response.ok(episodes).build();
   }
+
+  @Fallback(fallbackMethod = "fallbackGetEpisodes")
+  public List<Episode> getEpisodes(Long id) {
+    return episodeProxy.get(id);
+  }
+
+  private List<Episode> fallbackGetEpisodes(Long id) {
+    return new ArrayList<>();
+  }
+
+  @Fallback(fallbackMethod = "fallbackGetTvSeries")
+  public TvSeries getTvSeries(String title) {
+    return proxy.get(title);
+  }
+
+  private TvSeries fallbackGetTvSeries(String title) {
+    TvSeries tvSeries = new TvSeries();
+    tvSeries.setId(1L);
+    return tvSeries;
+  }
+
 }
