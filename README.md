@@ -1,4 +1,4 @@
-Microprofile RestClient with Quarkus
+Microprofile Fault Tolerance Fallback with Quarkus
 =======
 
 YouTube video:
